@@ -4,7 +4,10 @@
  */
 
 import { EventEmitter } from 'events';
-import { SerialPort } from 'serialport';
+// serialport is a native module — only required for desktop/Electron builds.
+// On the Render web demo we use the simulator path; lazy-require it.
+let SerialPort: any = null;
+try { SerialPort = require('serialport').SerialPort; } catch { /* not available in web demo */ }
 import { ELM327_INIT_SEQUENCE, buildObdRequest, parseElmResponse } from '../../shared/protocols/elm327';
 import { logger } from '../util/logger';
 
@@ -26,7 +29,7 @@ export interface ConnectionStatus {
 }
 
 export class HardwareManager extends EventEmitter {
-  private port: SerialPort | null = null;
+  private port: any = null;
   private transport: Transport | null = null;
   private device: string | null = null;
   private protocol: string | null = null;
@@ -35,8 +38,8 @@ export class HardwareManager extends EventEmitter {
   /** Enumerate all serial/USB devices */
   async listDevices(): Promise<DeviceInfo[]> {
     try {
-      const ports = await SerialPort.list();
-      return ports.map(p => ({
+      const ports: any[] = await SerialPort.list();
+      return ports.map((p: any) => ({
         path: p.path,
         manufacturer: p.manufacturer,
         productId: p.productId,
@@ -65,7 +68,7 @@ export class HardwareManager extends EventEmitter {
       try {
         this.port = new SerialPort({ path: device, baudRate: baud, autoOpen: false });
 
-        this.port.open((err) => {
+        this.port.open((err: any) => {
           if (err) {
             logger.error('Failed to open port', err);
             return reject(err);
@@ -79,8 +82,8 @@ export class HardwareManager extends EventEmitter {
             .catch(reject);
         });
 
-        this.port.on('data', (chunk) => this.handleData(chunk));
-        this.port.on('error', (err) => logger.error('Serial error', err));
+        this.port.on('data', (chunk: any) => this.handleData(chunk));
+        this.port.on('error', (err: any) => logger.error('Serial error', err));
         this.port.on('close', () => {
           logger.info('Serial port closed');
           this.transport = null;
