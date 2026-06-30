@@ -85,7 +85,9 @@ async function visit(browser: Browser, label: string, viewport: { width: number;
   attachListeners(page, `${label} @${viewport.width}x${viewport.height}`);
 
   try {
-    await page.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 30_000 });
+    await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    // wait for the React app to mount
+    await page.waitForSelector('.nav-item', { timeout: 15_000 });
   } catch (err: any) {
     record({ category: 'navigation', severity: 'critical', page: label,
       message: `Failed to load homepage: ${err.message}` });
@@ -246,7 +248,12 @@ async function main() {
   console.log(`[QA] Launching browser against ${BASE_URL}`);
   const browser = await chromium.launch({
     headless: true,
-    args: ['--no-sandbox', '--disable-dev-shm-usage'],
+    args: [
+      '--no-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-setuid-sandbox',
+      '--disable-gpu',
+    ],
   });
 
   // Three viewports per the spec

@@ -1,6 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { DatalogSample, DatalogStatus } from '../types';
 
+function getApi(): any | null {
+  return (typeof window !== 'undefined' ? (window as any).opentune : null);
+}
+
 const PIDS: Array<{ pid: number; name: string; unit: string; color: string }> = [
   { pid: 0x0c, name: 'RPM',       unit: 'rpm',  color: '#ff6b00' },
   { pid: 0x0d, name: 'SPEED',     unit: 'km/h', color: '#2ec27e' },
@@ -23,16 +27,38 @@ export default function DatalogView({
   const [samples, setSamples] = useState<DatalogSample[]>([]);
   const [intervalMs, setIntervalMs] = useState(100);
   const [enabledPids, setEnabledPids] = useState<Set<number>>(new Set([0x0c, 0x0d, 0x05, 0x0b, 0x11]));
+  const [webMode, setWebMode] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const tickRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const unsub = window.opentune.datalog.onSample((s) => {
-      setSamples((prev) => {
+    const api = getApi();
+    if (!api) {
+      setWebMode(true);
+      // Synthesise a believable plothole in the browser so the UI is still demonstrable
+      const t = samples.length;
+      const sample: DatalogSample = {
+        t,
+        timestamp: Date.now(),
+        values: {
+          RPM:  850 + Math.round(2400 * Math.abs(Math.sin(t / 12))),
+          SPEED: Math.max(0, Math.round(45 * Math.abs(Math.sin(t / 20)))),
+          ECT:  88 + Math.round(2 * Math.sin(t / 30)),
+          MAP:  35 + Math.round(80 * Math.abs(Math.sin(t / 15))),
+          TPS:  Math.max(0, Math.min(100, 12 + Math.round(20 * Math.sin(t / 18)))),
+        },
+      };
+      setSamples(prev => [...prev, sample].slice(-1000));
+      return;
+    }
+    const unsub = api.datalog.onSample((s: any) => {
+      setSamples((prev: DatalogSample[]) => {
         const next = [...prev, s];
         return next.length > 1000 ? next.slice(-1000) : next;
       });
     });
     return unsub;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -78,7 +104,6 @@ export default function DatalogView({
       ctx.stroke();
     }
 
-    // Legend
     ctx.font = '11px monospace';
     PIDS.filter(p => enabledPids.has(p.pid)).forEach((p, i) => {
       ctx.fillStyle = p.color;
@@ -89,11 +114,15 @@ export default function DatalogView({
   }, [samples, enabledPids]);
 
   const start = async () => {
-    const s = await window.opentune.datalog.start(Array.from(enabledPids), intervalMs);
+    const api = getApi();
+    if (!api) { setWebMode(true); return; }
+    const s = await api.datalog.start(Array.from(enabledPids), intervalMs);
     onStatusChange(s);
   };
   const stop = async () => {
-    const s = await window.opentune.datalog.stop();
+    const api = getApi();
+    if (!api) return;
+    const s = await api.datalog.stop();
     onStatusChange(s);
   };
   const clear = () => setSamples([]);
@@ -111,6 +140,11 @@ export default function DatalogView({
       <h1>Datalog</h1>
       <p>Stream and plot live OBD-II data. The captured trace is what you'd analyze after a
       WOT pull to evaluate AFR, knock, fuel trims, and timing.</p>
+      {webMode && (
+        <p style={{ color: 'var(--warn)', borderLeft: '3px solid var(--warn)', paddingLeft: 12 }}>
+          Web demo — synthesised samples are plotted for UI review. Real ECU streaming requires the desktop app.
+        </p>
+      )}
 
       <div className="card">
         <h2 style={{ marginTop: 0 }}>Controls</h2>
@@ -124,10 +158,11 @@ export default function DatalogView({
             value={intervalMs}
             onChange={e => setIntervalMs(parseInt(e.target.value) || 100)}
             style={{ width: 80 }}
+            disabled={webMode}
           />
-          {dlStatus?.running
-            ? <button className="danger" onClick={stop}>Stop</button>
-            : <button className="primary" onClick={start}>Start</button>}
+          {dlStatus?.running || webMode
+            ? <button className="danger" onClick={stop} disabled={webMode}>Stop</button>
+            : <button className="primary" onClick={start} disabled={webMode}>Start</button>}
           <button onClick={clear}>Clear</button>
           <span style={{ marginLeft: 16, color: 'var(--text-2)' }}>
             {dlStatus?.running ? '● recording' : '○ idle'} · {samples.length} samples

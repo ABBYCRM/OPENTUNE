@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 
+function getApi(): any | null {
+  return (typeof window !== 'undefined' ? (window as any).opentune : null);
+}
+
 export default function DiagnosticsView() {
   const [dtcs, setDtcs] = useState<string[] | null>(null);
   const [vin, setVin] = useState<string | null>(null);
@@ -7,9 +11,11 @@ export default function DiagnosticsView() {
   const [msg, setMsg] = useState<string>('');
 
   const readDtcs = async () => {
+    const api = getApi();
+    if (!api) { setMsg('Reading DTCs requires the desktop app (npm run dev).'); setDtcs([]); return; }
     setBusy(true); setMsg('');
     try {
-      const d = await window.opentune.obd2.readDtcs();
+      const d = await api.obd2.readDtcs();
       setDtcs(d);
       setMsg(d.length === 0 ? 'No DTCs — ECU reports clean.' : `Found ${d.length} DTC(s).`);
     } catch (err: any) {
@@ -19,9 +25,11 @@ export default function DiagnosticsView() {
 
   const clearDtcs = async () => {
     if (!confirm('Clear all DTCs and freeze-frame data? The MIL will turn off.')) return;
+    const api = getApi();
+    if (!api) { setMsg('Clear DTCs requires the desktop app.'); return; }
     setBusy(true); setMsg('');
     try {
-      const ok = await window.opentune.obd2.clearDtcs();
+      const ok = await api.obd2.clearDtcs();
       setMsg(ok ? 'DTCs cleared. MIL should extinguish on next crank.' : 'Clear failed.');
       if (ok) setDtcs([]);
     } catch (err: any) {
@@ -30,9 +38,11 @@ export default function DiagnosticsView() {
   };
 
   const readVin = async () => {
+    const api = getApi();
+    if (!api) { setMsg('Reading VIN requires the desktop app.'); setVin('—'); return; }
     setBusy(true); setMsg('');
     try {
-      const v = await window.opentune.obd2.vin();
+      const v = await api.obd2.vin();
       setVin(v);
       setMsg(`VIN: ${v}`);
     } catch (err: any) {
