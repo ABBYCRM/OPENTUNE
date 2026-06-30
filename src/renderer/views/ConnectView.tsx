@@ -70,21 +70,26 @@ export default function ConnectView({ onConnected }: { onConnected: () => void }
 
       <div className="card">
         <div className="toolbar">
-          <label>Transport:&nbsp;</label>
-          <select value={transport} onChange={e => {
-            const t = e.target.value;
-            setTransport(t);
-            if (t === 'simulator') setDevice('simulator://internal');
-            else if (devices[0]) setDevice(devices[0].path);
-          }}>
+          <label htmlFor="transport-select">Transport:&nbsp;</label>
+          <select
+            id="transport-select"
+            aria-label="OBD-II transport selection"
+            value={transport} onChange={e => {
+              const t = e.target.value;
+              setTransport(t);
+              if (t === 'simulator') setDevice('simulator://internal');
+              else if (devices[0]) setDevice(devices[0].path);
+            }}>
             <option value="simulator">Simulator (no hardware, fake data)</option>
             <option value="elm327">ELM327 (USB / Serial)</option>
             <option value="elm327-bt">ELM327 (Bluetooth)</option>
             <option value="opentune-hw">OpenTune HW (custom)</option>
             <option value="j2534">J2534 (Windows, Tactrix etc.)</option>
           </select>
-          <label>Device:&nbsp;</label>
+          <label htmlFor="device-input">Device:&nbsp;</label>
           <input
+            id="device-input"
+            aria-label="Serial device path or Bluetooth address"
             value={device}
             onChange={e => setDevice(e.target.value)}
             style={{ minWidth: 280 }}

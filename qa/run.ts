@@ -148,9 +148,15 @@ async function visit(browser: Browser, label: string, viewport: { width: number;
       message: 'Transport <select> not present on Connect view' });
   }
 
-  // MAP EDITOR — open, edit a cell, save
+  // MAP EDITOR — open, click first map row (auto-select), edit a cell, save
   await page.locator('.nav-item', { hasText: 'Map Editor' }).click();
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(500);
+  // First click the first row in the catalog table to ensure a map is selected
+  const firstMapRow = page.locator('table tbody tr').first();
+  if (await firstMapRow.count() > 0) {
+    try { await firstMapRow.click({ timeout: 2000 }); } catch {}
+    await page.waitForTimeout(300);
+  }
   const firstCell = page.locator('input.map-cell').first();
   if (await firstCell.count() > 0) {
     try {

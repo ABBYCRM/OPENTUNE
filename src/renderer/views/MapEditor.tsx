@@ -59,17 +59,26 @@ export default function MapEditor() {
         },
       ];
       setMaps(samples);
+      setSelected(samples[0].id);  // Auto-open the first sample map so the editor is interactive immediately.
       return;
     }
-    api.maps.list().then(setMaps);
+    api.maps.list().then((m: MapTable[]) => {
+      setMaps(m);
+      if (m.length > 0) setSelected(m[0].id);
+    });
   }, []);
 
   useEffect(() => {
     if (!selected) { setCurrent(null); return; }
     const api = getApi();
-    if (!api) return;
+    if (!api) {
+      // webMode branch: find the sample in `maps` state instead.
+      const m = maps.find(x => x.id === selected) ?? null;
+      setCurrent(m);
+      return;
+    }
     api.maps.get(selected).then(setCurrent);
-  }, [selected]);
+  }, [selected, maps]);
 
   const updateCell = async (row: number, col: number, value: number) => {
     if (!current) return;
