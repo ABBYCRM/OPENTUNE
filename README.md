@@ -137,6 +137,56 @@ GPL-3.0 — see [LICENSE](LICENSE). Pull requests welcome.
 This README is updated on every push. Each entry corresponds to a branch and a commit.
 Branch naming convention: `ai/YYYY-MM-DD-<change-summary>` or `fix/YYYY-MM-DD-<change-summary>`.
 
+### 2026-06-30 — `fix/2026-06-30-render-deploy-web-service` — live web service
+
+**Branch:** main (fix commits merged forward)
+**Commits:** `7d2e95e` → `68b105b` → `a5a2f7b` (current)
+**Tag:** v0.1.0-alpha
+
+**What was done:**
+
+- Added `server.js`: a minimal Express server that serves the Vite-built renderer as static
+  files and exposes `/healthz`, `/api/info`, and `/api/telemetry` endpoints.
+- Updated `package.json`:
+  - `start` script now runs `node server.js` instead of Electron
+  - `main` entry changed to `server.js`
+  - Added `express` and `@types/express` to deps
+  - Moved `serialport` from `dependencies` to `optionalDependencies` (native module, not
+    needed for the web demo, fails to build on Render without node-gyp toolchain)
+  - Added `engines.node: ">=20"`
+- Updated `src/electron/hardware/manager.ts` to lazy-require `serialport` so the web bundle
+  doesn't try to load it.
+- Added `.npmrc` with `ignore-scripts=true` so `npm ci` on Render doesn't try to build
+  serialport's native binding (the package still gets installed, just no postinstall).
+- Created Render web service `srv-d91k4967r5hc738foii0` (NOT a static site, NOT a blueprint)
+  with build command `npm ci && npm run build:renderer` and start command `node server.js`.
+- Manual deploy triggered via Render API; first two attempts failed due to native module
+  issues. Resolved with the optionalDeps + ignore-scripts approach.
+- **Service is LIVE at https://opentune-2tec.onrender.com**
+
+**Verification log:**
+
+- `GET /healthz` → `{"status":"ok","service":"opentune","version":"0.1.0",...}` HTTP 200
+- `GET /api/info` → JSON with name/version/features
+- `GET /api/telemetry` → JSON with synthesised live telemetry (RPM, MAP, ECT, etc.)
+- `GET /` → Vite-built renderer (HTML/JS/CSS), HTTP 200, content-type text/html
+- Render service status: `live`
+- Render deploy id: `dep-d91k9djeo5us7398p44g`
+- GitHub repo: https://github.com/ABBYCRM/OPENTUNE (public, default branch: main)
+- Latest commit: `a5a2f7bc30` on main
+- 23/23 unit tests pass, 5/5 e2e tests pass, typecheck clean, build clean
+
+**Self-reflection during this push:**
+
+- First attempt used `static_site` (Render Blueprint) — wrong, user explicitly said no blueprints.
+  Deleted, created `web_service` instead.
+- Second attempt: `npm ci --omit=optional` broke the rollup native binary (also an optional
+  dep). Wrong tool. Reverted.
+- Third attempt: `ignore-scripts=true` in `.npmrc` is the right answer — serialport's package
+  is still installed, only the postinstall that tries to compile native code is skipped.
+- Diagnostic: Render's API doesn't expose build logs, only status (live / build_failed).
+  Had to debug locally by replicating the exact `npm ci && vite build` sequence.
+
 ### 2026-06-29 — `ai/2026-06-29-initial-scaffold` — initial push
 
 **Branch:** `ai/2026-06-29-initial-scaffold`
