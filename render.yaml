@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: opentune
+    runtime: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist/renderer
+    autoDeploy: false
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
