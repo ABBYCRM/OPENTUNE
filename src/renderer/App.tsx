@@ -23,14 +23,24 @@ export default function App() {
   const [conn, setConn] = useState<ConnectionStatus | null>(null);
   const [dlStatus, setDlStatus] = useState<DatalogStatus | null>(null);
   const [tick, setTick] = useState(0);
+  const [webMode, setWebMode] = useState<boolean>(false);
 
   useEffect(() => {
     const refresh = async () => {
+      // web-opentune demo runs without an Electron preload — window.opentune is undefined.
+      // In that case, show a friendly banner instead of crashing.
+      const api = (typeof window !== 'undefined' ? (window as any).opentune : null);
+      if (!api) {
+        setWebMode(true);
+        setConn({ connected: false, transport: null, device: null, protocol: null });
+        return;
+      }
+      setWebMode(false);
       try {
-        const s = await window.opentune.hardware.status();
+        const s = await api.hardware.status();
         setConn(s);
         if (s.connected) {
-          const ds = await window.opentune.datalog.status();
+          const ds = await api.datalog.status();
           setDlStatus(ds);
         }
       } catch { /* not in electron yet */ }
@@ -81,9 +91,10 @@ export default function App() {
         <span className={conn?.connected ? 'ok' : 'err'}>
           {conn?.connected ? '● LIVE' : '○ OFFLINE'}
         </span>
-        <span>transport: {conn?.transport ?? 'none'}</span>
+        <span>transport: {conn?.transport ?? (webMode ? 'web demo (no hardware bridge)' : 'none')}</span>
         <span>device: {conn?.device ?? '—'}</span>
         <span style={{ flex: 1 }} />
+        {webMode && <span style={{ color: 'var(--warn)' }}>! Web demo mode — run `npm run dev` locally for full functionality</span>}
         {dlStatus?.running && <span className="ok">● datalogging · {dlStatus.samples} samples</span>}
         <span>OPENTUNE · GPL-3.0</span>
       </footer>

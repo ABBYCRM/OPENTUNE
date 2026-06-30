@@ -19,12 +19,16 @@ export default function Dashboard() {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const unsub = window.opentune.datalog.onSample((s) => setLatest(s));
+    const api = (typeof window !== 'undefined' ? (window as any).opentune : null);
+    if (!api) return;
+    const unsub = api.datalog.onSample((s: any) => setLatest(s));
     return unsub;
   }, []);
 
   useEffect(() => {
-    window.opentune.hardware.status().then(s => setConnected(s.connected));
+    const api = (typeof window !== 'undefined' ? (window as any).opentune : null);
+    if (!api) return;
+    api.hardware.status().then((s: any) => setConnected(s.connected));
   }, [latest]);
 
   return (

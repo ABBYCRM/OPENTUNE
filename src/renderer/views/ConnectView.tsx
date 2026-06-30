@@ -10,15 +10,20 @@ export default function ConnectView({ onConnected }: { onConnected: () => void }
   const [error, setError] = useState<string | null>(null);
 
   const refresh = async () => {
-    if (!window.opentune) { setError('Electron bridge not available (running in browser-only mode)'); return; }
+    const api = (typeof window !== 'undefined' ? (window as any).opentune : null);
+    if (!api) {
+      setError('Web demo mode: this build is the renderer running without the Electron host. Map editor, datalog mock data, and DTC stubs are still browseable. For live OBD-II / ELM327 connectivity, run `npm run dev` locally.');
+      setStatus({ connected: false, transport: null, device: null, protocol: null });
+      return;
+    }
     try {
-      const d = await window.opentune.hardware.list();
+      const d = await api.hardware.list();
       setDevices(d);
     } catch (err: any) {
       setError(err.message);
     }
     try {
-      const s = await window.opentune.hardware.status();
+      const s = await api.hardware.status();
       setStatus(s);
     } catch {}
   };
@@ -28,8 +33,14 @@ export default function ConnectView({ onConnected }: { onConnected: () => void }
   const connect = async () => {
     setBusy(true);
     setError(null);
+    const api = (typeof window !== 'undefined' ? (window as any).opentune : null);
+    if (!api) {
+      setError('Connect requires the desktop app (npm run dev). This web demo cannot reach a vehicle.');
+      setBusy(false);
+      return;
+    }
     try {
-      const s = await window.opentune.hardware.connect(transport, device);
+      const s = await api.hardware.connect(transport, device);
       setStatus(s);
       onConnected();
     } catch (err: any) {
@@ -41,8 +52,10 @@ export default function ConnectView({ onConnected }: { onConnected: () => void }
 
   const disconnect = async () => {
     setBusy(true);
+    const api = (typeof window !== 'undefined' ? (window as any).opentune : null);
+    if (!api) { setBusy(false); return; }
     try {
-      await window.opentune.hardware.disconnect();
+      await api.hardware.disconnect();
       setStatus({ connected: false, transport: null, device: null, protocol: null });
       onConnected();
     } finally {
