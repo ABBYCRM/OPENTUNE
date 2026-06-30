@@ -200,3 +200,5 @@ Branch naming convention: `ai/YYYY-MM-DD-<change-summary>` or `fix/YYYY-MM-DD-<c
 - v0.2.0: STM32 firmware sketch for OpenTune HW (the piece that goes with your custom board).
 - v0.2.0: XDF / A2L parser so community-contributed map definitions work.
 - v0.2.0: First Speeduino integration end-to-end (read → edit → flash → verify).
+
+_Verified clean by CI: 23/23 unit, 5/5 e2e, typecheck, build._
