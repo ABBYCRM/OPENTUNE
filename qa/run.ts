@@ -157,7 +157,8 @@ async function visit(browser: Browser, label: string, viewport: { width: number;
     try { await firstMapRow.click({ timeout: 2000 }); } catch {}
     await page.waitForTimeout(300);
   }
-  const firstCell = page.locator('input.map-cell').first();
+  const firstCell = page.locator('input.map-cell:not([readonly])').first();
+  const readOnlyCell = page.locator('input.map-cell[readonly]').first();
   if (await firstCell.count() > 0) {
     try {
       const original = await firstCell.inputValue();
@@ -170,6 +171,9 @@ async function visit(browser: Browser, label: string, viewport: { width: number;
       record({ category: 'interaction', severity: 'low', page: label,
         message: `Map cell edit failed: ${err.message}` });
     }
+  } else if (await readOnlyCell.count() > 0) {
+    record({ category: 'interaction', severity: 'low', page: label,
+      message: 'Map cells are readonly in web demo mode (expected — edits require desktop app)' });
   } else {
     record({ category: 'ui', severity: 'medium', page: label,
       message: 'Map editor: no input.map-cell found (no maps loaded?)' });
@@ -234,7 +238,9 @@ async function visit(browser: Browser, label: string, viewport: { width: number;
   }
 
   // === ACCESSIBILITY quick scan ===
-  // Missing aria-label on transport select?
+  // Navigate back to Connect to check the transport select's aria-label.
+  await page.locator('.nav-item', { hasText: 'Connect' }).click({ timeout: 5000 }).catch(() => {});
+  await page.waitForTimeout(300);
   const selectAria = await page.locator('select').first().getAttribute('aria-label').catch(() => null);
   if (!selectAria) {
     record({ category: 'accessibility', severity: 'medium', page: label,
