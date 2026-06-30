@@ -2,7 +2,7 @@
   "name": "opentune",
   "version": "0.1.0",
   "description": "OPENTUNE — FOSS cross-platform OBD2-compatible ECU tuning suite",
-  "main": "dist/electron/electron/main.js",
+  "main": "server.js",
   "author": "ABBYCRM",
   "license": "GPL-3.0",
   "private": false,
@@ -11,10 +11,11 @@
     "dev": "concurrently -k \"npm:dev:renderer\" \"npm:dev:electron\"",
     "dev:renderer": "vite",
     "dev:electron": "wait-on tcp:5173 && tsc -p tsconfig.electron.json && cross-env NODE_ENV=development electron .",
+    "dev:server": "node server.js",
     "build:renderer": "vite build",
     "build:electron": "tsc -p tsconfig.electron.json",
     "build": "npm run build:renderer && npm run build:electron",
-    "start": "cross-env NODE_ENV=production electron .",
+    "start": "node server.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
@@ -23,6 +24,7 @@
   },
   "dependencies": {
     "chart.js": "^4.4.1",
+    "express": "^4.19.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "serialport": "^12.0.0",
@@ -30,6 +32,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.44.0",
+    "@types/express": "^4.17.21",
     "@types/node": "^20.12.7",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",
@@ -39,10 +42,13 @@
     "cross-env": "^7.0.3",
     "electron": "^30.0.0",
     "eslint": "^8.57.0",
+    "jsdom": "^24.0.0",
     "typescript": "^5.4.5",
     "vite": "^5.2.0",
     "vitest": "^1.6.0",
-    "jsdom": "^24.0.0",
     "wait-on": "^7.2.0"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

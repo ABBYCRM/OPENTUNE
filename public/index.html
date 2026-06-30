@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>OPENTUNE — FOSS ECU Tuning Suite</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <style>
+    :root { --bg:#0a0a0a; --bg-1:#141414; --bg-2:#1c1c1c; --border:#2e2e2e; --text:#f0f0f0; --muted:#a8a8a8; --accent:#ff6b00; --ok:#2ec27e; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 80px 24px; }
+    .badge { display: inline-block; padding: 4px 10px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+    h1 { font-family: 'JetBrains Mono', monospace; font-size: 64px; letter-spacing: 4px; color: var(--accent); margin: 24px 0 12px; }
+    h2 { font-family: 'JetBrains Mono', monospace; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    p { color: var(--muted); margin-bottom: 16px; max-width: 70ch; }
+    .tagline { font-size: 20px; color: var(--text); margin-bottom: 32px; }
+    .cta { display: inline-block; padding: 14px 28px; background: var(--accent); color: #000; text-decoration: none; border-radius: 6px; font-weight: 600; margin-right: 12px; }
+    .cta.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .cta:hover { opacity: 0.85; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 24px; }
+    .card { background: var(--bg-1); border: 1px solid var(--border); border-radius: 6px; padding: 20px; }
+    .card h3 { font-family: 'JetBrains Mono', monospace; color: var(--accent); margin-bottom: 8px; font-size: 14px; }
+    .card p { font-size: 13px; }
+    code { font-family: 'JetBrains Mono', monospace; background: var(--bg-2); padding: 2px 6px; border-radius: 3px; font-size: 13px; color: var(--text); }
+    pre { background: var(--bg-2); padding: 16px; border-radius: 6px; overflow-x: auto; border: 1px solid var(--border); }
+    pre code { background: transparent; padding: 0; }
+    .footer { color: var(--muted); font-size: 12px; margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--border); }
+    .live { color: var(--ok); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <span class="badge">v0.1.0-alpha · GPL-3.0</span>
+    <h1>OPENTUNE</h1>
+    <p class="tagline">FOSS, cross-platform, OBD2-compatible ECU tuning suite. Map editor · Datalog · DTC diagnostics · Custom hardware interface.</p>
+    <a class="cta" href="https://github.com/ABBYCRM/OPENTUNE">★ View on GitHub</a>
+    <a class="cta secondary" href="https://github.com/ABBYCRM/OPENTUNE#quick-start">Quick start →</a>
+
+    <h2>What it does</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>OBD-II Diagnostics</h3>
+        <p>Read &amp; clear DTCs, pull VIN, walk 22 standard PIDs (RPM, MAP, ECT, STFT, LTFT, MAF, TPS, VBATT, …) on every car since 1996.</p>
+      </div>
+      <div class="card">
+        <h3>Map Editor</h3>
+        <p>2D heatmap table editor for VE fuel, ignition timing, and boost maps. JSON save / export / import. Dirty-cell highlighting.</p>
+      </div>
+      <div class="card">
+        <h3>Live Datalog</h3>
+        <p>Custom-PID sampling, configurable interval, rolling 1000-sample buffer, real-time canvas plot, export to CSV.</p>
+      </div>
+      <div class="card">
+        <h3>OpenTune HW</h3>
+        <p>Build a custom CAN interface (STM32 / ESP32 / RP2040). Spec, JSON protocol, and firmware sketch included.</p>
+      </div>
+    </div>
+
+    <h2>Transports</h2>
+    <p>Pick the hardware path that fits your build:</p>
+    <ul style="color: var(--muted); margin-bottom: 16px; padding-left: 24px;">
+      <li><strong>Simulator</strong> — no hardware, plausible data, for dev and CI</li>
+      <li><strong>ELM327</strong> — the classic $15 OBD2 adapter, works for read-only + DTCs</li>
+      <li><strong>J2534</strong> — Tactrix OpenPort 2.0 and clones, full UDS for supported vehicles</li>
+      <li><strong>OpenTune HW</strong> — your custom build, lowest latency, boot-mode pin access</li>
+    </ul>
+
+    <h2>Run it</h2>
+    <pre><code>git clone https://github.com/ABBYCRM/OPENTUNE.git
+cd OPENTUNE
+npm install
+npm run dev   # launches Electron + Vite</code></pre>
+
+    <h2>Verify it (CI green)</h2>
+    <p class="live">● Live: 23/23 unit · 5/5 e2e · typecheck clean · build clean</p>
+
+    <div class="footer">
+      <p>OPENTUNE is licensed under GPL-3.0. We do not include OEM ECU security bypass, DRM circumvention, or emissions-defeat code. Tuning for off-road / race use only where emissions are affected.</p>
+      <p style="margin-top: 12px;">© 2026 ABBYCRM · <a href="https://github.com/ABBYCRM/OPENTUNE/issues" style="color: var(--accent);">Report an issue</a></p>
+    </div>
+  </div>
+</body>
+</html>
